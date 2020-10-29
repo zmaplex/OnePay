@@ -18,7 +18,7 @@
 # 使用虚拟环境
 python3 -m venv dj_venv
 # 激活虚拟环境
-source dj_env/bin/activate
+source dj_venv/bin/activate
 # 安装依赖
 pip install -r requirements.txt
 # 复制并修改配置文件
@@ -28,6 +28,10 @@ python manage.py makemigrations
 python manage.py migrate
 # 创建超级用户
 python manage.py createsuperuser
+# 复制静态资源
+python manage.py collectstatic
+# 启用
+source dj_venv/bin/activate && dj_venv/bin/gunicorn --worker-class=gevent --worker-connections=1000 --workers=3  --bind unix:/var/run/jcpmpay.sock JCPMPay.wsgi:application
 ```
 
 **支付插件**
@@ -42,4 +46,25 @@ python manage.py createsuperuser
 
 `gateway/payutils/alipay/gateway.py`
 
+**nginx config**
+```
+    ...
+    location / {
+      proxy_pass http://unix:/var/run/jcpmpay.sock;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    
+    location /static {
+      autoindex on;
+      alias  /your_project_directory/static;
+    }
+    
+    location /media {
+      autoindex on;
+      alias  /your_project_directory/media;
+    }
+    ...
+```
 **待续**
