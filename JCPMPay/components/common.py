@@ -2,6 +2,7 @@ import os
 
 from JCPMPay import BASE_DIR, config
 
+BASE_DIR = BASE_DIR.parent
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
