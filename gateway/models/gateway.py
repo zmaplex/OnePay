@@ -11,7 +11,7 @@ class PayGateway(CommonModel):
 
     name = models.CharField(max_length=32, unique=True,
                             verbose_name="支付网关", help_text="必须是英文，且唯一")
-    enable = models.BooleanField(default=True, verbose_name="启用")
+    enable = models.BooleanField(default=False, verbose_name="启用")
     alias_name = models.CharField(
         max_length=30, default="", verbose_name="显示别名")
     sync_url = models.CharField(
