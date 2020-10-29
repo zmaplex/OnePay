@@ -24,3 +24,4 @@ django-json-widget
 
 gunicorn
 wheel
+gevent
