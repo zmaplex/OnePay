@@ -80,6 +80,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
 
         billing_m = Billing.objects.get(sid=res.sid)
         billing_m.pid = res.pid
+        billing_m.status = billing_m.STATUS_PAID
         billing_m.save()
 
         data = {'sid': res.sid, 'name': billing_m.name, 'price': billing_m.price,
