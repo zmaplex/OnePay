@@ -77,6 +77,9 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             return pay.failed_http()
 
         billing_m = Billing.objects.get(sid=res.sid)
+        billing_m.pid = res.pid
+        billing_m.save()
+
         data = {'sid': res.sid, 'name': billing_m.name, 'price': billing_m.price,
                 'last_modify': billing_m.update_at, 'pid': res.pid, 'msg': 'null',
                 'pay_status': 'successful'}
@@ -98,7 +101,6 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         """
         pay = self.__get_pay()
         data = dict(request.query_params)
-        print(data)
         res = pay.return_order(data)
         billing_m = Billing.objects.get(sid=res.sid)
         data = {

@@ -25,12 +25,14 @@ from rest_framework import permissions
 from rest_framework.documentation import include_docs_urls
 from rest_framework.routers import DefaultRouter
 
-from gateway.apis.PayApplicationApi import BasePayApplicationView
+from gateway.apis.payApplicationApi import BasePayApplicationView
 from gateway.apis.payGatewayApi import BasePayGatewayView
+from gateway.apis.payBillingApi import BasePayBillingView
 
 router = DefaultRouter()
-router.register(r'PayGateway/PayGateway', BasePayGatewayView)
-router.register(r'PayGateway/PayApplication', BasePayApplicationView)
+router.register(r'PayGateway/BaseGateway', BasePayGatewayView)
+router.register(r'PayGateway/BaseApplication', BasePayApplicationView)
+router.register(r'PayGateway/BaseBilling', BasePayBillingView)
 
 if settings.DEBUG:
     doc_permissions = permissions.AllowAny

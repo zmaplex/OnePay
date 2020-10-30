@@ -8,6 +8,10 @@ from gateway.serializers.payApplicationSz import PayApplicationSerializer
 
 
 class BasePayApplicationView(viewsets.ReadOnlyModelViewSet):
+    """
+    get
+    查找具体对象应使用应用 app_id
+    """
     permission_classes = (permissions.IsAdminUser,)
     queryset = PayApplication.objects.all()
     serializer_class = PayApplicationSerializer

@@ -8,11 +8,11 @@ from Crypto.PublicKey import RSA
 class RSASignatureTool(object):
 
     @staticmethod
-    def sort_argv(data: dict, ignore=None):
+    def sort_argv(data: dict, ignore: list = None):
         """
         对参数进行排序，字典序，默认升序。
         @param data:字典数据
-        @param ignore:排除字段
+        @param ignore:排除字段的列表
         @return:
         """
         string = ""
