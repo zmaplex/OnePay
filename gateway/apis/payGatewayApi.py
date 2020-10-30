@@ -74,6 +74,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         pay = self.__get_pay()
         res = pay.notify_order(request)
         if res.status != res.SUCCESSFULLY_VERIFIED:
+            print(f'验签失败：{request.data}')
             return pay.failed_http()
 
         billing_m = Billing.objects.get(sid=res.sid)
