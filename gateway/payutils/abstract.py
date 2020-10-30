@@ -12,6 +12,10 @@ class BaseTransactionSlip(object):
         self.sync_url = sync_url
         self.async_url = async_url
 
+    def __str__(self):
+        return f'sid = {self.sid},name = {self.name},price = {self.price},\n' \
+               f'sync_url = {self.sync_url},async_url = {self.async_url}'
+
 
 class BaseTransactionResult(object):
     SUCCESSFULLY_VERIFIED = 0

@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from gateway.models import PayGateway, PayApplication, Billing
@@ -40,7 +41,11 @@ class CreateOrderSerializer(BaseSz):
         billing_m.price = price
         billing_m.gateway = gateway_m
         billing_m.save()
-        url = f'http://{self._get_http_host()}'
+
+        if settings.WEBSITE_ADDRESS == '':
+            url = f'http://{self._get_http_host()}'
+        else:
+            url = settings.WEBSITE_ADDRESS
         config = gateway_m.pay_config
         pay = Pay.get_instance(gateway_m.name, config)
         data = BaseTransactionSlip(sid=billing_m.sid,
@@ -48,6 +53,7 @@ class CreateOrderSerializer(BaseSz):
                                    price=billing_m.price,
                                    sync_url=f'{url}{gateway_m.sync_url}',
                                    async_url=f'{url}{gateway_m.async_url}')
+        print(f'create order: {data}')
         pay_url = pay.create_order(data)
         billing_m.pay_url = pay_url
         billing_m.save()

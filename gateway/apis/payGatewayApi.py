@@ -71,10 +71,11 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
                 'last_modify': 最后修改时间, 'pid': 平台账单ID,
                 'msg': 'null','pay_status': 'successful'}
         """
+        print(f'收到异步通知数据：{request.data}')
         pay = self.__get_pay()
         res = pay.notify_order(request)
         if res.status != res.SUCCESSFULLY_VERIFIED:
-            print(f'验签失败：{request.data}')
+            print(f'验签失败：\n请求数据：{request.data}\n订单数据：{res}')
             return pay.failed_http()
 
         billing_m = Billing.objects.get(sid=res.sid)
@@ -88,11 +89,14 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         data['sign'] = sign
         url = billing_m.app.notify_url
         merchant_res = requests.post(url, data=data)
-        print(merchant_res.content)
+        print('商户数据')
+        print(merchant_res.text)
         if 'ok' == merchant_res.text:
             self.__pay_success(res)
+            print(f'商户已正确处理: {res}')
             return pay.success_http()
         else:
+            print(f'商户未正确处理: {res}')
             return HttpResponse('商户未正确处理')
 
     @action(methods=['get'], detail=True)
