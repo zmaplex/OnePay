@@ -71,6 +71,6 @@ class Pay(object):
             obj.description = module_item.gateway_description()
             obj.save()
             obj.pay_config = module_item.gateway_config()
-            obj.async_url = f"/api/PayGateway/PayGateway/{obj.name}/async_notify/"
-            obj.sync_url = f"/api/PayGateway/PayGateway/{obj.name}/sync_notify/"
+            obj.async_url = f"/api/PayGateway/BaseGateway/{obj.name}/async_notify/"
+            obj.sync_url = f"/api/PayGateway/BaseGateway/{obj.name}/sync_notify/"
             obj.save()
