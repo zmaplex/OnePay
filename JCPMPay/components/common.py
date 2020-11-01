@@ -1,9 +1,6 @@
 import os
 
 from JCPMPay import BASE_DIR, config
-
-BASE_DIR = BASE_DIR.parent
-
 from . import sentry
 
 sentry.__init__()
