@@ -2,16 +2,18 @@ import requests
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, viewsets
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund
 from gateway.models import Billing
 from gateway.models.gateway import PayGateway
 from gateway.payutils.abstract import BaseTransactionResult
 from gateway.payutils.pay import Pay
-from gateway.serializers.payGatewaySz import PayGatewaySerializer, CreateOrderSerializer
+from gateway.serializers.payGatewaySz import PayGatewaySerializer, CreateOrderSerializer, RequestRefundSerializer
 
 
 class TestSerializer(serializers.Serializer):
@@ -39,17 +41,23 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=['post'], detail=False, serializer_class=CreateOrderSerializer)
     def create_order(self, request, *args, **kwargs):
-        """
-        创建订单接口
-        响应内容；{"detail":{"url":"支付链接","sid":"系统订单号"}}
-        """
-
         serializer = CreateOrderSerializer(data=request.data,
                                            context={'request': request})
         print(request.META['HTTP_HOST'])
         if serializer.is_valid(True):
             data = serializer.save()
             print(data['url'])
+            return Response({'detail': data})
+
+    @swagger_auto_schema(**base_pay_gateway_view__request_refund)
+    @action(methods=['post'], detail=False, serializer_class=RequestRefundSerializer)
+    def request_refund(self, request, *args, **kwargs):
+        """
+        退款接口
+        """
+        serializers = RequestRefundSerializer(data=request.data)
+        if serializers.is_valid(raise_exception=True):
+            data = serializers.save().data
             return Response({'detail': data})
 
     def cancel_order(self):

@@ -1,6 +1,5 @@
 import traceback
 
-from gateway.models import PayGateway
 from gateway.payutils.abstract import AbstractPayFactory
 from .config import PAY_MODULES
 
@@ -64,6 +63,7 @@ class Pay(object):
         注册支付模块信息到数据库中，初次注册的时候，请到系统修改配置信息并启用
         :return:
         """
+        from gateway.models import PayGateway
         obj, created = PayGateway.objects.get_or_create(name=module_item.gateway_name())
 
         if created:

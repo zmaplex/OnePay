@@ -31,7 +31,6 @@ class BasePayQueryBillingSerializer(BaseSz):
 
     sid = serializers.CharField(max_length=20, required=False, allow_null=True, allow_blank=True)
     pid = serializers.CharField(max_length=64, required=False, allow_null=True, allow_blank=True)
-    app_id = serializers.CharField(max_length=15, label="应用ID", help_text="应用必须是已经注册且有效")
 
     def update(self, instance, validated_data):
         pass

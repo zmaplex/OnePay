@@ -4,17 +4,50 @@ from django.http import HttpResponse
 from rest_framework.exceptions import ValidationError
 
 
+class BaseRequestRefund(object):
+    def __init__(self, sid, price: str):
+        """
+        @param sid:系统订单号
+        @param price:退款价格
+        """
+        self.sid = sid
+        self.price = price
+
+
 class BaseTransactionSlip(object):
-    def __init__(self, sid, name, price, sync_url, async_url=None):
+    COMPUTER_DEVICE = 0
+    MOBILE_DEVICE = 1
+    TABLET_DEVICE = 2
+
+    def __init__(self, sid, name, price, sync_url, async_url=None, device_type=COMPUTER_DEVICE):
+        """
+        @param sid: 系统订单
+        @param name: 账单名称
+        @param price: 价格
+        @param sync_url: 同步通知地址
+        @param async_url: 异步通知地址
+        @param device_type: 设备类型
+        """
         self.sid = sid
         self.name = name
         self.price = str(price)
         self.sync_url = sync_url
         self.async_url = async_url
+        self.device_type = device_type
 
     def __str__(self):
         return f'sid = {self.sid},name = {self.name},price = {self.price},\n' \
                f'sync_url = {self.sync_url},async_url = {self.async_url}'
+
+
+class BaseCreateOrderResult(object):
+    def __init__(self, url, msg='ok', code=0):
+        self.url = url
+        self.msg = msg
+        self.code = code
+
+    def __str__(self):
+        return f"{{'url':{self.url},'msg':{self.msg},'code':{self.code}}}"
 
 
 class BaseTransactionResult(object):
@@ -72,7 +105,7 @@ class AbstractPayFactory(object):
         self.config = data
 
     @abc.abstractmethod
-    def create_order(self, data: BaseTransactionSlip, *args, **kwargs):
+    def create_order(self, data: BaseTransactionSlip, *args, **kwargs) -> BaseCreateOrderResult:
         """
         创建订单接口
         :param data: 订单数据封装到字典中
@@ -107,6 +140,15 @@ class AbstractPayFactory(object):
         :return:BaseTransactionResult
         """
         raise NotImplementedError("同步通知接口没有实现")
+
+    @abc.abstractmethod
+    def request_refund(self, data: BaseRequestRefund) -> bool:
+        """
+        退款接口
+        @param data: BaseRequestRefund
+        @return: True:退款成功，False：退款失败
+        """
+        raise NotImplementedError('退款接口没有实现')
 
     @staticmethod
     @abc.abstractmethod

@@ -5,6 +5,7 @@ from gateway.utils import RSASignatureTool
 
 
 class BaseSz(serializers.Serializer):
+    app_id = serializers.CharField(max_length=15, label="应用ID", help_text="应用必须是已经注册且有效")
     sign = serializers.CharField(max_length=1024, label="签名", help_text="base64 签名内容，签名算法为：SHA256WithRSA")
 
     def update(self, instance, validated_data):

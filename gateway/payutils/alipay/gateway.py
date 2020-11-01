@@ -1,7 +1,8 @@
 from alipay import AliPay
 from django.http import HttpResponse
 
-from gateway.payutils.abstract import AbstractPayFactory, BaseTransactionSlip, BaseTransactionResult
+from gateway.payutils.abstract import AbstractPayFactory, BaseTransactionSlip, BaseTransactionResult, \
+    BaseCreateOrderResult, BaseRequestRefund
 
 
 class AliaPay(AbstractPayFactory):
@@ -30,7 +31,7 @@ class AliaPay(AbstractPayFactory):
             debug=False,  # 默认False
         )
 
-    def create_order(self, data: BaseTransactionSlip, *args, **kwargs):
+    def create_order(self, data: BaseTransactionSlip, *args, **kwargs) -> BaseCreateOrderResult:
         if not isinstance(data, BaseTransactionSlip):
             raise RuntimeError("请传入一个 BaseTransactionSlip 实例")
 
@@ -38,8 +39,13 @@ class AliaPay(AbstractPayFactory):
                   "total_amount": data.price, "return_url": data.sync_url}
         if data.async_url:
             params['notify_url'] = data.async_url
-        order_string = self.alipay.api_alipay_trade_page_pay(**params)
-        return self.url + order_string
+
+        if data.device_type == data.COMPUTER_DEVICE:
+            order_string = self.alipay.api_alipay_trade_page_pay(**params)
+        else:
+            order_string = self.alipay.api_alipay_trade_wap_pay(**params)
+
+        return BaseCreateOrderResult(self.url + order_string)
 
     def notify_order(self, request, *args, **kwargs) -> BaseTransactionResult:
         data = request.data
@@ -69,6 +75,14 @@ class AliaPay(AbstractPayFactory):
             status = BaseTransactionResult.UNKNOWN_PAYMENT_STATUS
         result = BaseTransactionResult(sid, pid, status)
         return result
+
+    def request_refund(self, data: BaseRequestRefund) -> bool:
+        result = self.alipay.api_alipay_trade_refund(out_trade_no=data.sid,
+                                                     refund_amount=f"{data.price}")
+        if result["code"] == "10000":
+            return True
+        else:
+            return False
 
     @staticmethod
     def __deal_dict(data: dict):

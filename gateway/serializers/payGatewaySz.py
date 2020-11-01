@@ -1,10 +1,12 @@
+from decimal import Decimal
+
 from django.conf import settings
 from rest_framework import serializers
 
 from gateway.models import PayGateway, PayApplication, Billing
-from gateway.payutils.abstract import BaseTransactionSlip
-from gateway.payutils.pay import Pay
+from gateway.payutils.abstract import BaseTransactionSlip, BaseRequestRefund
 from gateway.serializers.baseSz import BaseSz
+from gateway.serializers.payBillingSz import PayBillingSerializer
 
 
 class PayGatewaySerializer(serializers.ModelSerializer):
@@ -13,11 +15,57 @@ class PayGatewaySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'alias_name', 'enable', 'description']
 
 
+class RequestRefundSerializer(BaseSz):
+    sid = serializers.CharField(max_length=20, label="订单号", help_text="为本系统的订单号")
+    price = serializers.CharField(max_length=20, label="退款费用", help_text="不能高于订单金额")
+
+    def create(self, data):
+        sid = data.get('sid')
+        price = data.get('price')
+        billing_m = Billing.objects.get(sid=sid)
+        if billing_m.status == billing_m.STATUS_PAID:
+            pay = billing_m.gateway.get_pay_instance()
+            res = pay.request_refund(BaseRequestRefund(sid, price))
+            if res:
+                billing_m.status = billing_m.STATUS_REFUND
+                billing_m.save()
+
+        return PayBillingSerializer(billing_m)
+
+    def validate(self, attrs):
+        data = dict(attrs)
+        app_id = data.get('app_id')
+        sid = data.get('sid')
+        price = data.get('price')
+        # 验证签名
+        self.verify_signature(app_id, data, ['sign'])
+        billing = Billing.objects.filter(sid=sid)
+        if not billing.exists():
+            raise serializers.ValidationError({'sid': '订单不存在'})
+        billing_m = billing.first()
+        price = Decimal(price)
+        if billing_m.status == billing_m.STATUS_UNPAID:
+            raise serializers.ValidationError({'sid': '该订单尚未被支付'})
+
+        if billing_m.status == billing_m.STATUS_CANCELED:
+            raise serializers.ValidationError({'sid': '该订单已被取消'})
+
+        if billing_m.status == billing_m.STATUS_DELETE:
+            raise serializers.ValidationError({'sid': '该订单已被删除'})
+
+        if price < 0:
+            raise serializers.ValidationError({'price': '不能小于0'})
+        if price > billing_m.price:
+            raise serializers.ValidationError({'price': '不能大于订单价格'})
+
+        return attrs
+
+
 class CreateOrderSerializer(BaseSz):
     name = serializers.CharField(max_length=128, label="商品名称", help_text="商品名称")
     price = serializers.DecimalField(decimal_places=2, max_digits=12, label="价格", help_text='价格')
     gateway = serializers.CharField(default='null', allow_null=True, label="支付网关名称", max_length=64, help_text="网关")
-    app_id = serializers.CharField(max_length=15, label="应用ID", help_text="应用必须是已经注册且有效")
+    device_type = serializers.IntegerField(default=0, required=False, label="设备类型", help_text="0:电脑，1:手机,2:平板，默认：0")
 
     def _get_http_host(self):
         request = self.context.get('request', None)
@@ -33,6 +81,7 @@ class CreateOrderSerializer(BaseSz):
         price = validated_data.get('price')
         app_id = validated_data.get('app_id')
         gateway = validated_data.get('gateway')
+        device_type = validated_data.get('device_type')
         app_m = PayApplication.objects.get(app_id=app_id)
         gateway_m = PayGateway.objects.get(name=gateway)
         billing_m = Billing()
@@ -46,18 +95,20 @@ class CreateOrderSerializer(BaseSz):
             url = f'http://{self._get_http_host()}'
         else:
             url = settings.WEBSITE_ADDRESS
-        config = gateway_m.pay_config
-        pay = Pay.get_instance(gateway_m.name, config)
+
+        pay = gateway_m.get_pay_instance()
+
         data = BaseTransactionSlip(sid=billing_m.sid,
                                    name=billing_m.name,
                                    price=billing_m.price,
                                    sync_url=f'{url}{gateway_m.sync_url}',
-                                   async_url=f'{url}{gateway_m.async_url}')
+                                   async_url=f'{url}{gateway_m.async_url}',
+                                   device_type=device_type)
         print(f'create order: {data}')
-        pay_url = pay.create_order(data)
-        billing_m.pay_url = pay_url
+        create_order_res = pay.create_order(data)
+        billing_m.pay_url = create_order_res.url
         billing_m.save()
-        data = {'url': f'{pay_url}', 'sid': billing_m.sid}
+        data = {'url': f'{billing_m.pay_url}', 'sid': billing_m.sid}
         return data
 
     def validate(self, attrs):

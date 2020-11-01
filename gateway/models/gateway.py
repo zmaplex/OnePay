@@ -2,6 +2,8 @@ from django.db import models
 
 # Create your models here.
 from common.model.CommonModel import CommonModel
+from gateway.payutils.abstract import AbstractPayFactory
+from gateway.payutils.pay import Pay
 
 
 class PayGateway(CommonModel):
@@ -22,6 +24,9 @@ class PayGateway(CommonModel):
         max_length=20480, blank=True, null=True, default=dict, verbose_name="配置文件", help_text="支付配置方式")
     description = models.CharField(
         max_length=1024, blank=True, default="", verbose_name="支付网关描述")
+
+    def get_pay_instance(self) -> AbstractPayFactory:
+        return Pay.get_instance(self.name, self.pay_config)
 
     def __str__(self):
         return self.name
