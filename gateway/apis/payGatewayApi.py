@@ -8,12 +8,13 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund
+from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund, base_pay_gateway_view__query_order, \
+    base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order
 from gateway.models import Billing
 from gateway.models.gateway import PayGateway
 from gateway.payutils.abstract import BaseTransactionResult
-from gateway.payutils.pay import Pay
-from gateway.serializers.payGatewaySz import PayGatewaySerializer, CreateOrderSerializer, RequestRefundSerializer
+from gateway.serializers.payGatewaySz import PayGatewaySerializer, CreateOrderSerializer, RequestRefundSerializer, \
+    QueryPlatformOrder, CancelPlatformOder
 
 
 class TestSerializer(serializers.Serializer):
@@ -39,6 +40,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.filter(enable=True)
 
+    @swagger_auto_schema(**base_pay_gateway_view__create_order)
     @action(methods=['post'], detail=False, serializer_class=CreateOrderSerializer)
     def create_order(self, request, *args, **kwargs):
         serializer = CreateOrderSerializer(data=request.data,
@@ -55,20 +57,38 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         """
         退款接口
         """
-        serializers = RequestRefundSerializer(data=request.data)
-        if serializers.is_valid(raise_exception=True):
-            data = serializers.save().data
+        serializer = RequestRefundSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            data = serializer.save().data
             return Response({'detail': data})
 
-    def cancel_order(self):
+    @swagger_auto_schema(**base_pay_gateway_view__cancel_order)
+    @action(methods=['post'], detail=False, serializer_class=CancelPlatformOder)
+    def cancel_order(self, request):
         """
         取消订单接口
         """
+        serializer = CancelPlatformOder(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            data = serializer.save()
+            return Response({'detail': data})
 
-    def query_order(self):
+    @swagger_auto_schema(**base_pay_gateway_view__query_order)
+    @action(methods=['get'], detail=False, serializer_class=QueryPlatformOrder)
+    def query_order(self, request, *args, **kwargs):
         """
-        查询订单接口
+        查询支付平台订单原始信息接口
         """
+        data = {}
+        _data = dict(request.query_params)
+        for _key in _data:
+            data[_key] = _data[_key][0]
+
+        print(data)
+        serializer = QueryPlatformOrder(data=data)
+        if serializer.is_valid(raise_exception=True):
+            data = serializer.save()
+            return Response(data)
 
     @action(methods=['post'], detail=True)
     def async_notify(self, request, *args, **kwargs):
@@ -130,9 +150,8 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         return redirect(url)
 
     def __get_pay(self):
-        obj = self.get_object()
-        config = obj.pay_config
-        return Pay.get_instance(obj.name, config)
+        obj: PayGateway = self.get_object()
+        return obj.get_pay_instance()
 
     @staticmethod
     def __pay_success(res: BaseTransactionResult):
