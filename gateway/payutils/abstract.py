@@ -4,6 +4,12 @@ from django.http import HttpResponse
 from rest_framework.exceptions import ValidationError
 
 
+class BaseCancelOrder(object):
+    def __init__(self, status, detail: dict):
+        self.status = status
+        self.detail = detail
+
+
 class BaseRequestRefund(object):
     def __init__(self, sid, price: str):
         """
@@ -140,6 +146,24 @@ class AbstractPayFactory(object):
         :return:BaseTransactionResult
         """
         raise NotImplementedError("同步通知接口没有实现")
+
+    @abc.abstractmethod
+    def query_order(self, sid) -> dict:
+        """
+        查询支付平台的订单数据，以 dict 形式返回
+        @param sid: 本系统的订单号
+        @return:
+        """
+        raise NotImplementedError("订单查询接口没有被实现接口没有实现")
+
+    @abc.abstractmethod
+    def cancel_order(self, sid) -> BaseCancelOrder:
+        """
+        用于交易创建后，用户在一定时间内未进行支付，可调用该接口直接将未付款的交易进行关闭。
+        @param sid:本系统订单号
+        @return:BaseCancelOrder
+        """
+        raise NotImplementedError("关闭订单接口没有被实现")
 
     @abc.abstractmethod
     def request_refund(self, data: BaseRequestRefund) -> bool:

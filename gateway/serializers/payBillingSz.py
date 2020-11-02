@@ -12,7 +12,8 @@ class PayBillingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Billing
         fields = ['app', 'sid', 'pid', 'name', 'price',
-                  'pay_url', 'status', 'gateway', 'status_text']
+                  'pay_url', 'status', 'gateway', 'status_text',
+                  'create_at', 'update_at']
 
     def _app(self, obj: Billing):
         return obj.app.app_id
@@ -52,7 +53,7 @@ class BasePayQueryBillingSerializer(BaseSz):
         app_id = data.get('app_id')
 
         # 验证签名
-        self.verify_signature(app_id, data)
+        self.verify_signature(data)
 
         try:
             if sid:

@@ -15,7 +15,7 @@ class BaseSz(serializers.Serializer):
         pass
 
     @staticmethod
-    def verify_signature(app_id, data: dict, ignore: list = None):
+    def verify_signature(data: dict, app_id=None, ignore: list = None):
         """
         使用商户保存在应用中的公钥进行验签
         @param app_id: 应用 app_id
@@ -23,11 +23,14 @@ class BaseSz(serializers.Serializer):
         @param ignore: 忽略参数名的集合列表
         @return:
         """
+        if app_id is None:
+            app_id = data.get('app_id')
 
         if ignore is None:
             ignore = ['sign']
         elif 'sign' not in ignore:
             ignore.append('sign')
+
         objs = PayApplication.objects.filter(app_id=app_id)
         if not objs.exists():
             raise serializers.ValidationError({"app_id": ["应用不存在"]}, code=status.HTTP_404_NOT_FOUND)

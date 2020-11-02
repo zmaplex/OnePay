@@ -3,7 +3,7 @@ from drf_yasg import openapi
 from gateway.serializers.payBillingSz import PayBillingSerializer
 
 base_pay_billing_view__query_order = {
-    'operation_summary': 'sid 与 pid 必填一个',
+    'operation_summary': '查询本系统的订单数据',
     'manual_parameters': [
         openapi.Parameter(name='sid', required=False, in_=openapi.IN_QUERY, description='本系统账单id',
                           type=openapi.TYPE_STRING),

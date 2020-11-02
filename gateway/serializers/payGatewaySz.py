@@ -15,6 +15,41 @@ class PayGatewaySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'alias_name', 'enable', 'description']
 
 
+class BasePlatformOder(BaseSz):
+    sid = serializers.CharField(max_length=20, label="订单号", help_text="为本系统的订单号")
+
+    def validate(self, attrs):
+        data = dict(attrs)
+        self.verify_signature(data)
+        sid = data.get('sid')
+        billing_m = Billing.objects.filter(sid=sid)
+        if not billing_m.exists():
+            raise serializers.ValidationError('查询的订单不存在')
+        return attrs
+
+
+class CancelPlatformOder(BasePlatformOder):
+    def create(self, data):
+        sid = data.get('sid')
+        billing_m = Billing.objects.get(sid=sid)
+        gateway = billing_m.gateway.get_pay_instance()
+        res = gateway.cancel_order(sid)
+        data = {'status': res.status, 'platform_detail': res.detail}
+        return data
+
+
+class QueryPlatformOrder(BasePlatformOder):
+
+    def create(self, data):
+        sid = data.get('sid')
+        billing_m = Billing.objects.get(sid=sid)
+        gateway = billing_m.gateway.get_pay_instance()
+        return gateway.query_order(sid)
+
+    def validate(self, attrs):
+        return super(QueryPlatformOrder, self).validate(attrs)
+
+
 class RequestRefundSerializer(BaseSz):
     sid = serializers.CharField(max_length=20, label="订单号", help_text="为本系统的订单号")
     price = serializers.CharField(max_length=20, label="退款费用", help_text="不能高于订单金额")
@@ -38,7 +73,7 @@ class RequestRefundSerializer(BaseSz):
         sid = data.get('sid')
         price = data.get('price')
         # 验证签名
-        self.verify_signature(app_id, data, ['sign'])
+        self.verify_signature(data)
         billing = Billing.objects.filter(sid=sid)
         if not billing.exists():
             raise serializers.ValidationError({'sid': '订单不存在'})
@@ -115,7 +150,7 @@ class CreateOrderSerializer(BaseSz):
         data = dict(attrs)
         app_id = data.get('app_id')
         # 验证签名
-        self.verify_signature(app_id, data, ['sign'])
+        self.verify_signature(data)
         # 验证支付网关
         gateway = data.get('gateway', 'null')
         if gateway == 'null':
