@@ -135,12 +135,18 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         """
         pay = self.__get_pay()
         data = dict(request.query_params)
-        res = pay.return_order(data)
+        res: BaseTransactionResult = pay.return_order(data)
         billing_m = Billing.objects.get(sid=res.sid)
+
+        if res.status == res.SUCCESSFULLY_VERIFIED:
+            billing_m.status = billing_m.STATUS_PAID
+            billing_m.save()
+
         data = {
             'sid': res.sid,
             'name': billing_m.name,
             'price': billing_m.price,
+            'status': res.status,
             'last_modify': billing_m.update_at,
             'msg': 'null'
         }
