@@ -19,9 +19,12 @@ sentry-sdk
 python-dateutil
 django-debug-toolbar~=3.1.1
 packaging
-python-alipay-sdk
 django-json-widget
 
 gunicorn
 wheel
 gevent
+
+# Pay dependent package
+python-alipay-sdk
+paypal-checkout-serversdk
