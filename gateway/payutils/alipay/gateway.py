@@ -2,7 +2,7 @@ from alipay import AliPay
 from django.http import HttpResponse
 
 from gateway.payutils.abstract import AbstractPayFactory, BaseTransactionSlip, BaseTransactionResult, \
-    BaseCreateOrderResult, BaseRequestRefund, BaseCancelOrder
+    BaseCreateOrderResult, BaseRequestRefund, BaseCancelOrder, BaseOrderId
 
 
 class AliaPay(AbstractPayFactory):
@@ -76,12 +76,12 @@ class AliaPay(AbstractPayFactory):
         result = BaseTransactionResult(sid, pid, status)
         return result
 
-    def query_order(self, sid) -> dict:
-        res = self.alipay.api_alipay_trade_query(out_trade_no=sid)
+    def query_order(self, data: BaseOrderId) -> dict:
+        res = self.alipay.api_alipay_trade_query(out_trade_no=data.sid)
         return res
 
-    def cancel_order(self, sid) -> BaseCancelOrder:
-        res = self.alipay.api_alipay_trade_close(out_trade_no=sid)
+    def cancel_order(self, data: BaseOrderId) -> BaseCancelOrder:
+        res = self.alipay.api_alipay_trade_close(out_trade_no=data.sid)
         res_status = False
         if '10000' in res and 'Success' in res:
             res_status = True

@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from gateway.models import PayGateway, PayApplication, Billing
-from gateway.payutils.abstract import BaseTransactionSlip, BaseRequestRefund
+from gateway.payutils.abstract import BaseTransactionSlip, BaseRequestRefund, BaseOrderId
 from gateway.serializers.baseSz import BaseSz
 from gateway.serializers.payBillingSz import PayBillingSerializer
 
@@ -33,7 +33,7 @@ class CancelPlatformOder(BasePlatformOder):
         sid = data.get('sid')
         billing_m = Billing.objects.get(sid=sid)
         gateway = billing_m.gateway.get_pay_instance()
-        res = gateway.cancel_order(sid)
+        res = gateway.cancel_order(BaseOrderId(sid=sid, pid=billing_m.pid))
         data = {'status': res.status, 'platform_detail': res.detail}
         return data
 
@@ -44,7 +44,7 @@ class QueryPlatformOrder(BasePlatformOder):
         sid = data.get('sid')
         billing_m = Billing.objects.get(sid=sid)
         gateway = billing_m.gateway.get_pay_instance()
-        return gateway.query_order(sid)
+        return gateway.query_order(BaseOrderId(sid=sid, pid=billing_m.pid))
 
     def validate(self, attrs):
         return super(QueryPlatformOrder, self).validate(attrs)
@@ -60,7 +60,7 @@ class RequestRefundSerializer(BaseSz):
         billing_m = Billing.objects.get(sid=sid)
         if billing_m.status == billing_m.STATUS_PAID:
             pay = billing_m.gateway.get_pay_instance()
-            res = pay.request_refund(BaseRequestRefund(sid, price))
+            res = pay.request_refund(BaseRequestRefund(sid, billing_m.pid, price))
             if res:
                 billing_m.status = billing_m.STATUS_REFUND
                 billing_m.save()
@@ -69,7 +69,6 @@ class RequestRefundSerializer(BaseSz):
 
     def validate(self, attrs):
         data = dict(attrs)
-        app_id = data.get('app_id')
         sid = data.get('sid')
         price = data.get('price')
         # 验证签名
@@ -148,7 +147,6 @@ class CreateOrderSerializer(BaseSz):
 
     def validate(self, attrs):
         data = dict(attrs)
-        app_id = data.get('app_id')
         # 验证签名
         self.verify_signature(data)
         # 验证支付网关

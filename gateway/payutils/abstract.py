@@ -5,19 +5,46 @@ from rest_framework.exceptions import ValidationError
 
 
 class BaseCancelOrder(object):
+    """
+    取消订单结果
+    """
+
     def __init__(self, status, detail: dict):
         self.status = status
         self.detail = detail
 
 
-class BaseRequestRefund(object):
-    def __init__(self, sid, price: str):
+class BaseOrderId(object):
+    """
+    基础订单号
+    """
+
+    def __init__(self, sid, pid):
+        """
+         @param sid:系统订单号
+         @param pid:平台订单号
+         """
+        self.sid = sid
+        self.pid = pid
+
+    def __str__(self):
+        return f'BaseOrderId:{{"sid":{self.sid},"pid":{self.pid}}}'
+
+
+class BaseRequestRefund(BaseOrderId):
+    def __init__(self, sid, pid, price: str):
         """
         @param sid:系统订单号
+        @param pid:平台订单号
         @param price:退款价格
         """
+        super(BaseRequestRefund, self).__init__(sid=sid, pid=pid)
         self.sid = sid
+        self.pid = pid
         self.price = price
+
+    def __str__(self):
+        return f'BaseRequestRefund:{{"sid":{self.sid},"pid":{self.pid},"price":{self.price}}}'
 
 
 class BaseTransactionSlip(object):
@@ -148,19 +175,19 @@ class AbstractPayFactory(object):
         raise NotImplementedError("同步通知接口没有实现")
 
     @abc.abstractmethod
-    def query_order(self, sid) -> dict:
+    def query_order(self, data: BaseOrderId) -> dict:
         """
         查询支付平台的订单数据，以 dict 形式返回
-        @param sid: 本系统的订单号
+        @param data: 订单号
         @return:
         """
         raise NotImplementedError("订单查询接口没有被实现接口没有实现")
 
     @abc.abstractmethod
-    def cancel_order(self, sid) -> BaseCancelOrder:
+    def cancel_order(self, data: BaseOrderId) -> BaseCancelOrder:
         """
         用于交易创建后，用户在一定时间内未进行支付，可调用该接口直接将未付款的交易进行关闭。
-        @param sid:本系统订单号
+        @param data:订单号
         @return:BaseCancelOrder
         """
         raise NotImplementedError("关闭订单接口没有被实现")
