@@ -121,7 +121,7 @@ class PayPal(AbstractPayFactory):
         return json_data
 
     def cancel_order(self, data: BaseOrderId) -> BaseCancelOrder:
-        pass
+        return BaseCancelOrder(status=False, detail={"msg": "PayPal 不支持取消未支付的订单"})
 
     def request_refund(self, data: BaseRequestRefund) -> bool:
 

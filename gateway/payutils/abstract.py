@@ -9,7 +9,7 @@ class BaseCancelOrder(object):
     取消订单结果
     """
 
-    def __init__(self, status, detail: dict):
+    def __init__(self, status: bool, detail: dict):
         self.status = status
         self.detail = detail
 
