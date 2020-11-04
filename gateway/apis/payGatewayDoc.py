@@ -16,10 +16,26 @@ class OpenApiCreateOrderResSerializer(serializers.Serializer):
     sid = serializers.CharField(label="系统订单")
 
 
+class OpenApiAsyncNotifyResSerializer(serializers.Serializer):
+    sid = serializers.CharField(label="本系统订单ID")
+    pid = serializers.CharField(label="支付平台订单ID")
+    msg = serializers.CharField(label="消息，默认：null")
+    name = serializers.CharField(label="账单名称")
+    price = serializers.CharField(label="价格")
+    pay_status = serializers.CharField(label="支付状态")
+    last_modify = serializers.CharField(label="最后修改时间")
+
+
 base_pay_gateway_view__create_order = {
     'operation_summary': '创建订单接口数据',
 
     'responses': {200: openapi.Response('直接调用 url 即可跳转支付', OpenApiCreateOrderResSerializer)}
+}
+
+base_pay_gateway_view__async_notify = {
+    'operation_summary': '异步通知接口',
+
+    'responses': {200: openapi.Response('支付平台主动调用一次，本系统就回调客户设置的回调地址一次', OpenApiAsyncNotifyResSerializer)}
 }
 
 base_pay_gateway_view__query_order = {

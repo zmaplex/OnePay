@@ -1,5 +1,4 @@
 import requests
-from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -9,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund, base_pay_gateway_view__query_order, \
-    base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order
+    base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order, base_pay_gateway_view__async_notify
 from gateway.models import Billing
 from gateway.models.gateway import PayGateway
 from gateway.payutils.abstract import BaseTransactionResult
@@ -90,14 +89,11 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             data = serializer.save()
             return Response(data)
 
+    @swagger_auto_schema(**base_pay_gateway_view__async_notify)
     @action(methods=['post'], detail=True)
     def async_notify(self, request, *args, **kwargs):
         """
         异步通知接口
-        发送 form 数据格式 ：
-        {'sid': 本系统的账单ID, 'name': 账单名字, 'price': 价格,
-                'last_modify': 最后修改时间, 'pid': 平台账单ID,
-                'msg': 'null','pay_status': 'successful'}
         """
         print(f'收到异步通知数据：{request.data}')
         pay = self.__get_pay()
@@ -126,7 +122,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             return pay.success_http()
         else:
             print(f'商户未正确处理: {res}')
-            return HttpResponse('商户未正确处理')
+            return pay.failed_http()
 
     @action(methods=['get'], detail=True)
     def sync_notify(self, request, *args, **kwargs):
