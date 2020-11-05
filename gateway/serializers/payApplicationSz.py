@@ -6,4 +6,4 @@ from gateway.models import PayApplication
 class PayApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayApplication
-        fields = '__all__'
+        exclude = ['merchant_public_key', 'platform_private_key']

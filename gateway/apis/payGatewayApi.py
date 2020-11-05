@@ -1,14 +1,15 @@
 import requests
 from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, viewsets
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund, base_pay_gateway_view__query_order, \
-    base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order, base_pay_gateway_view__async_notify
+    base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order, base_pay_gateway_view__async_notify, \
+    base_pay_gateway_view__sync_notify
 from gateway.models import Billing
 from gateway.models.gateway import PayGateway
 from gateway.payutils.abstract import BaseTransactionResult
@@ -29,6 +30,9 @@ class TestSerializer(serializers.Serializer):
 
 
 class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
+    """
+    签名方式：参数字典序排列，sign(拼接参数内容)
+    """
     permission_classes = (permissions.AllowAny,)
     queryset = PayGateway.objects.all()
     serializer_class = PayGatewaySerializer
@@ -39,7 +43,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.filter(enable=True)
 
-    @swagger_auto_schema(**base_pay_gateway_view__create_order)
+    @extend_schema(**base_pay_gateway_view__create_order)
     @action(methods=['post'], detail=False, serializer_class=CreateOrderSerializer)
     def create_order(self, request, *args, **kwargs):
         serializer = CreateOrderSerializer(data=request.data,
@@ -50,7 +54,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             print(data['url'])
             return Response({'detail': data})
 
-    @swagger_auto_schema(**base_pay_gateway_view__request_refund)
+    @extend_schema(**base_pay_gateway_view__request_refund)
     @action(methods=['post'], detail=False, serializer_class=RequestRefundSerializer)
     def request_refund(self, request, *args, **kwargs):
         """
@@ -61,7 +65,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             data = serializer.save().data
             return Response({'detail': data})
 
-    @swagger_auto_schema(**base_pay_gateway_view__cancel_order)
+    @extend_schema(**base_pay_gateway_view__cancel_order)
     @action(methods=['post'], detail=False, serializer_class=CancelPlatformOder)
     def cancel_order(self, request):
         """
@@ -72,7 +76,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             data = serializer.save()
             return Response({'detail': data})
 
-    @swagger_auto_schema(**base_pay_gateway_view__query_order)
+    @extend_schema(**base_pay_gateway_view__query_order)
     @action(methods=['get'], detail=False, serializer_class=QueryPlatformOrder)
     def query_order(self, request, *args, **kwargs):
         """
@@ -89,7 +93,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             data = serializer.save()
             return Response(data)
 
-    @swagger_auto_schema(**base_pay_gateway_view__async_notify)
+    @extend_schema(**base_pay_gateway_view__async_notify)
     @action(methods=['post'], detail=True)
     def async_notify(self, request, *args, **kwargs):
         """
@@ -124,6 +128,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
             print(f'商户未正确处理: {res}')
             return pay.failed_http()
 
+    @extend_schema(**base_pay_gateway_view__sync_notify)
     @action(methods=['get'], detail=True)
     def sync_notify(self, request, *args, **kwargs):
         """
@@ -134,18 +139,14 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         res: BaseTransactionResult = pay.return_order(data)
         billing_m = Billing.objects.get(sid=res.sid)
 
+        data = {'sid': res.sid, 'name': billing_m.name, 'price': billing_m.price,
+                'last_modify': billing_m.update_at, 'pid': res.pid, 'msg': 'null',
+                'pay_status': 'unknown'}
         if res.status == res.SUCCESSFULLY_VERIFIED:
             billing_m.status = billing_m.STATUS_PAID
             billing_m.save()
+            data['pay_status'] = 'successful'
 
-        data = {
-            'sid': res.sid,
-            'name': billing_m.name,
-            'price': billing_m.price,
-            'status': res.status,
-            'last_modify': billing_m.update_at,
-            'msg': 'null'
-        }
         sign = billing_m.app.to_sign_with_platform_private_key(data)
         data['sign'] = sign
         url = billing_m.app.get_sync_notify_to_merchant_url(data)

@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -16,7 +17,7 @@ class BasePayBillingView(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = []
 
-    @swagger_auto_schema(**base_pay_billing_view__query_order)
+    @extend_schema(**base_pay_billing_view__query_order)
     @action(methods=['get'], permission_classes=[permissions.AllowAny],
             detail=False, serializer_class=BasePayQueryBillingSerializer)
     def query_order(self, request, *args, **kwargs):

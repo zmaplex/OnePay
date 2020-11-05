@@ -19,47 +19,27 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, include
 from django.views import static
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
-from rest_framework.documentation import include_docs_urls
+from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView, SpectacularAPIView
 from rest_framework.routers import DefaultRouter
 
 from gateway.apis.payApplicationApi import BasePayApplicationView
-from gateway.apis.payGatewayApi import BasePayGatewayView
 from gateway.apis.payBillingApi import BasePayBillingView
+from gateway.apis.payGatewayApi import BasePayGatewayView
 
 router = DefaultRouter()
 router.register(r'PayGateway/BaseGateway', BasePayGatewayView)
 router.register(r'PayGateway/BaseApplication', BasePayApplicationView)
 router.register(r'PayGateway/BaseBilling', BasePayBillingView)
 
-if settings.DEBUG:
-    doc_permissions = permissions.AllowAny
-else:
-    doc_permissions = permissions.IsAdminUser
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="API接口文档平台",
-        default_version='v1',
-        description="JCPMDOCS",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="nesnode@gmail.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(doc_permissions,),
-)
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('docs/', include_docs_urls(title='文档')),
     url(r'api/', include(router.urls)),
     url(r'^static/(?P<path>.*)$', static.serve,
         {'document_root': settings.STATIC_ROOT}, name='static'),
-    url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('docs/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Optional UI:
+    path('docs/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('docs/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 if settings.DEBUG:

@@ -1,3 +1,4 @@
+import json
 from alipay import AliPay
 from django.http import HttpResponse
 
@@ -65,6 +66,8 @@ class AliaPay(AbstractPayFactory):
 
     def return_order(self, data: dict, *args, **kwargs) -> BaseTransactionResult:
         data = self.__deal_dict(data)
+        print("收到同步数据")
+        print(json.dumps(data))
         # verification
         signature = data.pop("sign")
         success = self.alipay.verify(data, signature)

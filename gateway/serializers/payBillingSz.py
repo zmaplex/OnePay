@@ -1,3 +1,5 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers, status
 
 from gateway.models import Billing
@@ -15,12 +17,15 @@ class PayBillingSerializer(serializers.ModelSerializer):
                   'pay_url', 'status', 'gateway', 'status_text',
                   'create_at', 'update_at']
 
+    @extend_schema_field(OpenApiTypes.STR)
     def _app(self, obj: Billing):
         return obj.app.app_id
 
+    @extend_schema_field(OpenApiTypes.STR)
     def _gateway(self, obj: Billing):
         return obj.gateway.name
 
+    @extend_schema_field(OpenApiTypes.STR)
     def _status_text(self, obj: Billing):
         return obj.get_status_display()
 

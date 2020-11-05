@@ -98,7 +98,8 @@ class RequestRefundSerializer(BaseSz):
 class CreateOrderSerializer(BaseSz):
     name = serializers.CharField(max_length=128, label="商品名称", help_text="商品名称")
     price = serializers.DecimalField(decimal_places=2, max_digits=12, label="价格", help_text='价格')
-    gateway = serializers.CharField(default='null', allow_null=True, label="支付网关名称", max_length=64, help_text="网关")
+    gateway = serializers.CharField(default='null', allow_null=True, label="支付网关名称", max_length=64,
+                                    help_text="支付网关英文名称")
     device_type = serializers.IntegerField(default=0, required=False, label="设备类型", help_text="0:电脑，1:手机,2:平板，默认：0")
 
     def _get_http_host(self):

@@ -25,6 +25,8 @@ gunicorn
 wheel
 gevent
 
+drf-spectacular
+
 # Pay dependent package
 python-alipay-sdk
 paypal-checkout-serversdk

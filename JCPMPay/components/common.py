@@ -2,6 +2,7 @@ import os
 
 from JCPMPay import BASE_DIR, config
 from . import sentry
+from . import spectacular
 
 sentry.__init__()
 
@@ -12,13 +13,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg',
+    # 'drf_yasg',
+    'drf_spectacular',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
     'django_json_widget',
 
 ]
+
+SPECTACULAR_SETTINGS = spectacular.SPECTACULAR_DEFAULTS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -41,7 +45,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    # 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     "PAGE_SIZE": 5,
     'NON_FIELD_ERRORS_KEY': 'message'
