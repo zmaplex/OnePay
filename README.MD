@@ -1,6 +1,6 @@
 **设计说明**
 
-！！！ 简陋的开发版本，接口尚未稳定，请谨慎使用
+> 预发布阶段，请勿部署生产环境
 
 为了统一各类支付平台的支付细节而实现的一套支付系统
 
@@ -10,7 +10,27 @@
  
 * 支付接口
 
-创建订单、退款、查询支付等功能，并对整个流程实现双向验签，防止篡改
+**功能说明**
+
+> 系统流程
+
+[支付平台]  <--支付插件-->  [聚合系统]  <--统一接口-->  [应用]
+
+> 三大基本功能
+
+- 创建订单
+- 原路退款
+- 查询订单
+
+> 安全说明
+
+- [支付平台]  <--支付插件--> [聚合系统]
+
+  - 按照平台标准实现相关接口
+  
+- [聚合系统]  <--统一接口--> [应用]
+
+  - 双向流程使用 2048 位的 RSA私钥加密以及对应公钥进行验签(RSAwithSHA256)
 
 **部署**
 
@@ -36,17 +56,22 @@ source dj_venv/bin/activate && dj_venv/bin/gunicorn --worker-class=gevent --work
 
 **支付插件**
 
-注意：目前接口处于不稳定状态，随时都有可能变更接口规范，请勿部署生产环境。
+注意：目前插件规范处于预发布阶段，生产环境请勿使用。
 
-支付插件的实现规范，请查阅下列代码
+- 支付插件的抽象类
 
-`gateway/payutils/abstract.py`
+[Abstract](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/abstract.py)
 
-支付宝接口简易实现，可参考
+- 支付宝 接口实现
 
-`gateway/payutils/alipay/gateway.py`
+[Alipay](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/alipay/gateway.py)
 
-**nginx config**
+- PayPal 接口实现
+
+[PayPal](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/paypal/gateway.py)
+
+
+**nginx 配置参考**
 ```
     ...
     location / {
