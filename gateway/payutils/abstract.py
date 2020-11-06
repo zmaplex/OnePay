@@ -102,6 +102,7 @@ class AbstractPayFactory(object):
     config = {}
 
     """
+    子类名称必须是：PayGateWay
     子类需要声明 config 类变量，__代表字段未启用，#号为备注字段 示例如下
     config={
         "__auth_id": "授权ID",

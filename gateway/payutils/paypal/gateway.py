@@ -13,7 +13,7 @@ from gateway.payutils.abstract import AbstractPayFactory, BaseTransactionSlip, B
 from gateway.payutils.paypal.utils import PayPalResultFormatUtil
 
 
-class PayPal(AbstractPayFactory):
+class PayGateWay(AbstractPayFactory):
     config = {
         "__sandbox": False,
         "__client_id": "应用ID",
@@ -24,7 +24,7 @@ class PayPal(AbstractPayFactory):
     paypal = None
 
     def __init__(self, data: dict):
-        super(PayPal, self).__init__(data)
+        super(PayGateWay, self).__init__(data)
         _env_config = {'client_id': self.config['client_id'],
                        'client_secret': self.config['client_secret']}
 
@@ -72,7 +72,10 @@ class PayPal(AbstractPayFactory):
                 return BaseCreateOrderResult(link.href)
 
     def notify_order(self, request, *args, **kwargs) -> BaseTransactionResult:
+        print("=========收到异步通知数据=========")
         data = request.data
+        print(data)
+        print("=========收到异步通知数据=========")
         token = data['resource']['id']
         _sid, _pid, _status = self.__order_get_request(token)
         if _status == 'APPROVED':
@@ -91,7 +94,11 @@ class PayPal(AbstractPayFactory):
         return result
 
     def return_order(self, data: dict, *args, **kwargs) -> BaseTransactionResult:
+        print("=========收到同步通知数据=========")
+        print(data)
         data = self.__deal_dict(data)
+        print(data)
+        print("=========收到同步通知数据=========")
         _sid, _pid, _status = self.__order_get_request(data['token'])
         res_status = BaseTransactionResult.UNKNOWN_PAYMENT_STATUS
         if _status == 'APPROVED':
@@ -165,7 +172,7 @@ class PayPal(AbstractPayFactory):
 
     @staticmethod
     def gateway_config() -> dict:
-        return PayPal.config
+        return PayGateWay.config
 
     @staticmethod
     def success_http() -> HttpResponse:

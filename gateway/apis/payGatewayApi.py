@@ -99,7 +99,6 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         """
         异步通知接口
         """
-        print(f'收到异步通知数据：{request.data}')
         pay = self.__get_pay()
         res = pay.notify_order(request)
         if res.status != res.SUCCESSFULLY_VERIFIED:
@@ -118,8 +117,6 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         data['sign'] = sign
         url = billing_m.app.notify_url
         merchant_res = requests.post(url, data=data)
-        print('商户数据')
-        print(merchant_res.text)
         if 'ok' == merchant_res.text:
             self.__pay_success(res)
             print(f'商户已正确处理: {res}')

@@ -1,7 +1,26 @@
+import importlib
+import os
 import traceback
 
 from gateway.payutils.abstract import AbstractPayFactory
-from .config import PAY_MODULES
+
+PAY_MODULES = []
+
+
+def __init_pay_module__():
+    # 自动扫描插件并导入
+    filepath = 'gateway/payutils'
+    files = os.listdir(filepath)
+    for fi in files:
+        fi_d = os.path.join(filepath, fi)
+        if os.path.isdir(fi_d) and os.path.exists(f'{fi_d}/gateway.py'):
+            _module = fi_d.replace('/', '.') + '.gateway'
+            try:
+                obj = importlib.import_module(_module)
+                PAY_MODULES.append(getattr(obj, 'PayGateWay'))
+            except Exception as e:
+                print(f"导入插件失败：{_module}")
+                print(e)
 
 
 class Pay(object):
@@ -13,6 +32,7 @@ class Pay(object):
         第一次使用必须要初始化
         :return:
         """
+        __init_pay_module__()
         for module_item in PAY_MODULES:
             try:
                 Pay.__register_module(module_item)

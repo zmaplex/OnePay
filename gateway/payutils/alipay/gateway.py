@@ -1,4 +1,5 @@
 import json
+
 from alipay import AliPay
 from django.http import HttpResponse
 
@@ -6,7 +7,7 @@ from gateway.payutils.abstract import AbstractPayFactory, BaseTransactionSlip, B
     BaseCreateOrderResult, BaseRequestRefund, BaseCancelOrder, BaseOrderId
 
 
-class AliaPay(AbstractPayFactory):
+class PayGateWay(AbstractPayFactory):
     config = {
         "__sandbox": False,
         "__app_id": "支付宝开发者应用ID",
@@ -17,7 +18,7 @@ class AliaPay(AbstractPayFactory):
     alipay = None
 
     def __init__(self, data: dict):
-        super(AliaPay, self).__init__(data)
+        super(PayGateWay, self).__init__(data)
         if self.config['sandbox']:
             self.url = "https://openapi.alipaydev.com/gateway.do?"
         else:
@@ -50,10 +51,13 @@ class AliaPay(AbstractPayFactory):
 
     def notify_order(self, request, *args, **kwargs) -> BaseTransactionResult:
         data = request.data
+        print("=========收到异步通知数据=========")
+        print(json.dumps(data))
         if not isinstance(data, dict):
             data = dict(request.data.dict())
         data = self.__deal_dict(data)
-
+        print(json.dumps(data))
+        print("=========收到异步通知数据=========")
         signature = data.pop("sign")
         success = self.alipay.verify(data, signature)
         sid = data["out_trade_no"]
@@ -65,9 +69,11 @@ class AliaPay(AbstractPayFactory):
         return result
 
     def return_order(self, data: dict, *args, **kwargs) -> BaseTransactionResult:
-        data = self.__deal_dict(data)
-        print("收到同步数据")
+        print("=========收到同步通知数据=========")
         print(json.dumps(data))
+        data = self.__deal_dict(data)
+        print(json.dumps(data))
+        print("=========收到同步通知数据=========")
         # verification
         signature = data.pop("sign")
         success = self.alipay.verify(data, signature)
@@ -110,7 +116,7 @@ class AliaPay(AbstractPayFactory):
 
     @staticmethod
     def gateway_config() -> dict:
-        return AliaPay.config
+        return PayGateWay.config
 
     @staticmethod
     def success_http() -> HttpResponse:
