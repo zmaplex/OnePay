@@ -9,6 +9,8 @@ PAY_MODULES = []
 
 def __init_pay_module__():
     # 自动扫描插件并导入
+    global PAY_MODULES
+    PAY_MODULES = []
     filepath = 'gateway/payutils'
     files = os.listdir(filepath)
     for fi in files:
@@ -33,11 +35,14 @@ class Pay(object):
         :return:
         """
         __init_pay_module__()
+        if len(Pay.PAY_MODULES_INFO) > 0:
+            return
         for module_item in PAY_MODULES:
             try:
                 Pay.__register_module(module_item)
             except Exception as e:
                 print(f"添加支付模块出错，{traceback.format_exc()}")
+
         Pay.__load_module()
 
     @staticmethod
@@ -72,8 +77,11 @@ class Pay(object):
         如果您有一定开发能力遇到异常请不要捕获，根据异常信息即时修改支付配置数据即可，对于无开发能力的用户，建议付费寻求技术支援。
         :return:
         """
+
         for index, _module in enumerate(PAY_MODULES):
             m_info = {"id": index, "name": _module.gateway_name(), "description": f"{_module.gateway_description()}"}
+            if m_info in Pay.PAY_MODULES_INFO:
+                continue
             Pay.PAY_MODULES_INFO.append(m_info)
             print(f"载入接口：{m_info}")
 

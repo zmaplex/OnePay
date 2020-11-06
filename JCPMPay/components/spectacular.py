@@ -54,7 +54,9 @@ SPECTACULAR_DEFAULTS = {
     'PREPROCESSING_HOOKS': [],
 
     # enum name overrides. dict with keys "YourEnum" and their choice values "field.choices"
-    'ENUM_NAME_OVERRIDES': {},
+    'ENUM_NAME_OVERRIDES': {
+        'StatusEnum': 'gateway.models.Billing.STATUS_CHOICES'
+    },
 
     # function that returns a list of all classes that should be excluded from doc string extraction
     'GET_LIB_DOC_EXCLUDES': 'drf_spectacular.plumbing.get_lib_doc_excludes',

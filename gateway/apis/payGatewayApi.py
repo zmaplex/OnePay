@@ -9,10 +9,11 @@ from rest_framework.response import Response
 
 from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund, base_pay_gateway_view__query_order, \
     base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order, base_pay_gateway_view__async_notify, \
-    base_pay_gateway_view__sync_notify
+    base_pay_gateway_view__sync_notify, base_pay_gateway_view__list
 from gateway.models import Billing
 from gateway.models.gateway import PayGateway
 from gateway.payutils.abstract import BaseTransactionResult
+from gateway.payutils.pay import Pay
 from gateway.serializers.payGatewaySz import PayGatewaySerializer, CreateOrderSerializer, RequestRefundSerializer, \
     QueryPlatformOrder, CancelPlatformOder
 
@@ -30,9 +31,6 @@ class TestSerializer(serializers.Serializer):
 
 
 class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
-    """
-    签名方式：参数字典序排列，sign(拼接参数内容)
-    """
     permission_classes = (permissions.AllowAny,)
     queryset = PayGateway.objects.all()
     serializer_class = PayGatewaySerializer
@@ -42,6 +40,15 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(enable=True)
+
+    @extend_schema(**base_pay_gateway_view__list)
+    def list(self, request, *args, **kwargs):
+        return super(BasePayGatewayView, self).list(request, *args, **kwargs)
+
+    @action(methods=['get'], detail=False, permission_classes=(permissions.IsAdminUser,))
+    def reload_plugin(self, request, *args, **kwargs):
+        Pay.re_init()
+        return Response({'detail': 'ok'})
 
     @extend_schema(**base_pay_gateway_view__create_order)
     @action(methods=['post'], detail=False, serializer_class=CreateOrderSerializer)
@@ -87,11 +94,10 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         for _key in _data:
             data[_key] = _data[_key][0]
 
-        print(data)
         serializer = QueryPlatformOrder(data=data)
         if serializer.is_valid(raise_exception=True):
             data = serializer.save()
-            return Response(data)
+            return Response({'detail': data})
 
     @extend_schema(**base_pay_gateway_view__async_notify)
     @action(methods=['post'], detail=True)
