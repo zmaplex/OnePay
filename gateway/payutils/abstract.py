@@ -99,8 +99,6 @@ class BaseTransactionResult(object):
 
 
 class AbstractPayFactory(object):
-    config = {}
-
     """
     子类名称必须是：PayGateWay
     子类需要声明 config 类变量，__代表字段未启用，#号为备注字段 示例如下
@@ -114,6 +112,7 @@ class AbstractPayFactory(object):
         "#说明": "去掉 __ 启用对应的选项，并确保对应的 value 正确，#号为备注字典",
     }
     """
+    config = {}
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, data: dict):
@@ -142,10 +141,10 @@ class AbstractPayFactory(object):
     def create_order(self, data: BaseTransactionSlip, *args, **kwargs) -> BaseCreateOrderResult:
         """
         创建订单接口
-        :param data: 订单数据封装到字典中
+        :param data: BaseTransactionSlip
         :param args:
         :param kwargs:
-        :return: 支付URL
+        :return: BaseCreateOrderResult
         """
         raise NotImplementedError("创建订单接口没有实现")
 
@@ -179,7 +178,7 @@ class AbstractPayFactory(object):
     def query_order(self, data: BaseOrderId) -> dict:
         """
         查询支付平台的订单数据，以 dict 形式返回
-        @param data: 订单号
+        @param data: BaseOrderId
         @return:
         """
         raise NotImplementedError("订单查询接口没有被实现接口没有实现")
@@ -188,7 +187,7 @@ class AbstractPayFactory(object):
     def cancel_order(self, data: BaseOrderId) -> BaseCancelOrder:
         """
         用于交易创建后，用户在一定时间内未进行支付，可调用该接口直接将未付款的交易进行关闭。
-        @param data:订单号
+        @param data:BaseOrderId
         @return:BaseCancelOrder
         """
         raise NotImplementedError("关闭订单接口没有被实现")
@@ -222,24 +221,15 @@ class AbstractPayFactory(object):
     @abc.abstractmethod
     def gateway_config() -> dict:
         """
-        必须是JSON格式的文本
+        返回配置项，系统会在数据库中初始化这些配置项
+        一般直接 return PayGateWay.config 就可以了。
         {
-        ”key“:"填写密钥"，
-        ”appid":"填写应用ID"
+        "key":"填写密钥"，
+        "appid":"填写应用ID"
         }
         :return: 网关配置
         """
         raise NotImplementedError("获取网关配置接口没有实现")
-
-    @staticmethod
-    def get_result(pay_url, no_id):
-        """
-        返回支付地址
-        :param pay_url:支付地址
-        :param no_id: 账单id
-        :return:{'id': no_id, 'url': pay_url}
-        """
-        return {'id': no_id, 'url': pay_url}
 
     @staticmethod
     @abc.abstractmethod

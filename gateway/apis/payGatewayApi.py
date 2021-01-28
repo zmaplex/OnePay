@@ -43,10 +43,17 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(**base_pay_gateway_view__list)
     def list(self, request, *args, **kwargs):
+        """
+        获取可用网关
+        """
         return super(BasePayGatewayView, self).list(request, *args, **kwargs)
 
+    @extend_schema(summary="重新载入支付插件，仅限管理员")
     @action(methods=['get'], detail=False, permission_classes=(permissions.IsAdminUser,))
     def reload_plugin(self, request, *args, **kwargs):
+        """
+        重新载入支付插件，仅限管理员
+        """
         Pay.re_init()
         return Response({'detail': 'ok'})
 
@@ -113,7 +120,7 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
 
         billing_m = Billing.objects.get(sid=res.sid)
         billing_m.pid = res.pid
-        billing_m.status = billing_m.STATUS_PAID
+        billing_m.status = billing_m.STATUS_FPAID
         billing_m.save()
 
         data = {'sid': res.sid, 'name': billing_m.name, 'price': billing_m.price,
