@@ -6,6 +6,7 @@ from rest_framework import permissions, viewsets
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from urllib3.exceptions import MaxRetryError
 
 from gateway.apis.payGatewayDoc import base_pay_gateway_view__request_refund, base_pay_gateway_view__query_order, \
     base_pay_gateway_view__cancel_order, base_pay_gateway_view__create_order, base_pay_gateway_view__async_notify, \
@@ -129,7 +130,16 @@ class BasePayGatewayView(viewsets.ReadOnlyModelViewSet):
         sign = billing_m.app.to_sign_with_platform_private_key(data)
         data['sign'] = sign
         url = billing_m.app.notify_url
-        merchant_res = requests.post(url, data=data)
+
+        try:
+            merchant_res = requests.post(url, data=data)
+        except MaxRetryError:
+            print(f'通知商户超时: {res}')
+            return pay.failed_http()
+        except:
+            print(f'通知商户错误: {res}')
+            return pay.failed_http()
+
         if 'ok' == merchant_res.text:
             self.__pay_success(res)
             print(f'商户已正确处理: {res}')
