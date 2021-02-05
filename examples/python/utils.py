@@ -118,7 +118,7 @@ class JCPay:
     def set_gateway(self, name):
         self.gateway = name
 
-    def create(self, name, price=0.01):
+    def create(self, name, price='0.10'):
         data = {'app_id': self.app_id, 'name': name,
                 'price': price, 'gateway': self.gateway,
                 'device_type': 0}

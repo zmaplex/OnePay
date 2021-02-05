@@ -4,11 +4,9 @@
 
 为了统一各类支付平台的支付细节而实现的一套支付系统
 
-* 应用模块
+- 接口文档
 
- 区分不同的业务收款
- 
-* 支付接口
+运行服务后，访问 http://127.0.0.1:8000/docs/schema/swagger-ui/#/
 
 **功能说明**
 
@@ -60,15 +58,15 @@ source dj_venv/bin/activate && dj_venv/bin/gunicorn --worker-class=gevent --work
 
 - 支付插件的抽象类
 
-[Abstract](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/abstract.py)
+  - [Abstract](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/abstract.py)
 
 - 支付宝 接口实现
 
-[Alipay](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/alipay/gateway.py)
+  - [Alipay](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/alipay/gateway.py)
 
 - PayPal 接口实现
 
-[PayPal](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/paypal/gateway.py)
+  - [PayPal](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/paypal/gateway.py)
 
 
 **nginx 配置参考**
