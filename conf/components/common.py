@@ -1,6 +1,6 @@
 import os
 
-from JCPMPay import BASE_DIR, config
+from conf import BASE_DIR, config
 from . import sentry
 from . import spectacular
 
@@ -60,8 +60,8 @@ CELERY_TASK_SERIALIZER = config('CELERY_TASK_SERIALIZER')
 CELERY_RESULT_SERIALIZER = config('CELERY_RESULT_SERIALIZER')
 CELERY_TIMEZONE = config('CELERY_TIMEZONE')
 
-ROOT_URLCONF = 'JCPMPay.urls'
-WSGI_APPLICATION = 'JCPMPay.wsgi.application'
+ROOT_URLCONF = 'conf.urls'
+WSGI_APPLICATION = 'conf.wsgi.application'
 
 TEMPLATES = [
     {

@@ -1,5 +1,5 @@
 def __init__():
-    from JCPMPay import config
+    from conf import config
     try:
         import sentry_sdk
         from sentry_sdk.integrations.django import DjangoIntegration

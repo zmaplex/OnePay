@@ -8,7 +8,7 @@ Group=www
 WorkingDirectory={{your_project_directory}}
 Restart=always
 RestartSec=5
-ExecStart={{your_project_directory}}/dj_venv/bin/gunicorn --worker-class=gevent --worker-connections=1000 --workers=3  --bind unix:/var/run/jcpmpay.sock JCPMPay.wsgi:application
+ExecStart={{your_project_directory}}/dj_venv/bin/gunicorn --worker-class=gevent --worker-connections=1000 --workers=3  --bind unix:/var/run/OnePay.sock OnePay.wsgi:application
 
 [Install]
 WantedBy=multi-user.target

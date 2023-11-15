@@ -34,9 +34,9 @@
 
 ```shell script
 # 使用虚拟环境
-python3 -m venv dj_venv
+python3 -m venv venv
 # 激活虚拟环境
-source dj_venv/bin/activate
+source venv/bin/activate
 # 安装依赖
 pip install -r requirements.txt
 # 复制并修改配置文件
@@ -49,7 +49,7 @@ python manage.py createsuperuser
 # 复制静态资源
 python manage.py collectstatic
 # 启用
-source dj_venv/bin/activate && dj_venv/bin/gunicorn --worker-class=gevent --worker-connections=1000 --workers=3  --bind unix:/var/run/jcpmpay.sock JCPMPay.wsgi:application
+source venv/bin/activate && venv/bin/gunicorn --worker-class=gevent --worker-connections=1000 --workers=3  --bind unix:/var/run/onepay.sock OnePay.wsgi:application
 ```
 
 **支付插件**
@@ -58,22 +58,22 @@ source dj_venv/bin/activate && dj_venv/bin/gunicorn --worker-class=gevent --work
 
 - 支付插件的抽象类
 
-  - [Abstract](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/abstract.py)
+  - [Abstract](https://github.com/zmaplex/OnePay/blob/master/gateway/payutils/abstract.py)
 
 - 支付宝 接口实现
 
-  - [Alipay](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/alipay/gateway.py)
+  - [Alipay](https://github.com/zmaplex/OnePay/blob/master/gateway/payutils/alipay/gateway.py)
 
 - PayPal 接口实现
 
-  - [PayPal](https://github.com/zmaplex/JCPMPay/blob/master/gateway/payutils/paypal/gateway.py)
+  - [PayPal](https://github.com/zmaplex/OnePay/blob/master/gateway/payutils/paypal/gateway.py)
 
 
 **nginx 配置参考**
 ```
     ...
     location / {
-      proxy_pass http://unix:/var/run/jcpmpay.sock;
+      proxy_pass http://unix:/var/run/OnePay.sock;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -71,7 +71,7 @@ SPECTACULAR_DEFAULTS = {
 
     # General schema metadata. Refer to spec for valid inputs
     # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#openapi-object
-    'TITLE': 'JCPMPay 支付解决方案',
+    'TITLE': 'OnePay 支付解决方案',
     'DESCRIPTION': '一个开源的支付框架，提供统一的支付接口以及SDK',
     'TOS': None,
     # Optional: MAY contain "name", "url", "email"
