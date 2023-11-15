@@ -1,6 +1,5 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
-from drf_yasg import openapi
 from rest_framework import serializers
 
 from gateway.serializers.payBillingSz import PayBillingSerializer

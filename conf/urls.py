@@ -15,11 +15,15 @@ Including another URLconf
 """
 import debug_toolbar
 from django.conf import settings
-from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path, re_path
+
 from django.views import static
-from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView, SpectacularAPIView
+from drf_spectacular.views import (
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+    SpectacularAPIView,
+)
 from rest_framework.routers import DefaultRouter
 
 from gateway.apis.payApplicationApi import BasePayApplicationView
@@ -27,23 +31,35 @@ from gateway.apis.payBillingApi import BasePayBillingView
 from gateway.apis.payGatewayApi import BasePayGatewayView
 
 router = DefaultRouter()
-router.register(r'PayGateway/BaseGateway', BasePayGatewayView)
-router.register(r'PayGateway/BaseApplication', BasePayApplicationView)
-router.register(r'PayGateway/BaseBilling', BasePayBillingView)
+router.register(r"PayGateway/BaseGateway", BasePayGatewayView)
+router.register(r"PayGateway/BaseApplication", BasePayApplicationView)
+router.register(r"PayGateway/BaseBilling", BasePayBillingView)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    url(r'api/', include(router.urls)),
-    url(r'^static/(?P<path>.*)$', static.serve,
-        {'document_root': settings.STATIC_ROOT}, name='static'),
-    path('docs/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path("admin/", admin.site.urls),
+    re_path(r"api/", include(router.urls)),
+    re_path(
+        r"^static/(?P<path>.*)$",
+        static.serve,
+        {"document_root": settings.STATIC_ROOT},
+        name="static",
+    ),
+    path("docs/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
-    path('docs/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('docs/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path(
+        "docs/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "docs/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        path('api-auth/', include('rest_framework.urls')),
-        path('__debug__/', include(debug_toolbar.urls)),
+        path("api-auth/", include("rest_framework.urls")),
+        path("__debug__/", include(debug_toolbar.urls)),
     ]
