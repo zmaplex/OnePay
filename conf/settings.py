@@ -11,8 +11,13 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 
-from conf import BASE_DIR, config
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv()
 
 
 from .components.common import *
@@ -27,13 +32,10 @@ from .components.common import *
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = os.getenv("DJANGO_DEBUG", True) == "true"
 
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")]
-)
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
-WEBSITE_ADDRESS = config("WEBSITE_ADDRESS")
 
 # Application definition
 
