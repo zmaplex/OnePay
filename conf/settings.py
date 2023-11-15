@@ -25,6 +25,7 @@ from .components.common import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
