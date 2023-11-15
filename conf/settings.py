@@ -14,7 +14,6 @@ import os
 
 from conf import BASE_DIR, config
 
-SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 from .components.common import *
 
@@ -25,21 +24,19 @@ from .components.common import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")]
+)
 
-WEBSITE_ADDRESS = config('WEBSITE_ADDRESS')
+WEBSITE_ADDRESS = config("WEBSITE_ADDRESS")
 
 # Application definition
 
-INSTALLED_APPS += [
-    'gateway.apps.GatewayConfig'
-]
+INSTALLED_APPS += ["gateway.apps.GatewayConfig"]
 
-MIDDLEWARE += [
-
-]
+MIDDLEWARE += []
